@@ -1,18 +1,13 @@
 from datetime import datetime, timedelta
 import requests
 import sqlite3
+
+
+# API URL for currency conversion
 url = "https://v6.exchangerate-api.com/v6/f0c4123dd73731cafac7d7e9/pair/{}/{}"
 
 
-def convert_currency(amount, from_curency, to_currency):
-
-    response = requests.get(url.format(from_curency, to_currency))
-    data = response.json()
-
-    rate = data['conversion_rate'] * amount
-    return rate, data
-
-
+# creating new data base
 def create_database():
     conn = sqlite3.connect('currency_converter.db')
     c = conn.cursor()
@@ -29,6 +24,19 @@ def create_database():
     conn.commit()
     conn.close()
 
+# converting currency using external api
+
+
+def convert_currency(amount, from_curency, to_currency):
+
+    response = requests.get(url.format(from_curency, to_currency))
+    data = response.json()
+
+    rate = data['conversion_rate'] * amount
+    return rate, data
+
+# fetching saved data from data base
+
 
 def get_conversion_history():
     conn = sqlite3.connect('currency_converter.db')
@@ -37,6 +45,8 @@ def get_conversion_history():
     rows = c.fetchall()
     conn.close()
     return rows
+
+# after fetching api converted data are saved to data base
 
 
 def save_conversion(amount, from_currency, to_currency, rate, timestamp):
@@ -53,7 +63,14 @@ def save_conversion(amount, from_currency, to_currency, rate, timestamp):
 def main():
     create_database()
 
-    amount = float(input("Enter amount to convert: "))
+    amount = input("Enter amount to convert: ")
+    try:
+        amount = float(amount)
+    except:
+        print("enter valid amount")
+        print("------------------")
+        main()
+
     print("------------------")
 
     from_currency = input("From currency (e.g., USD,INR): ").upper()
@@ -64,7 +81,7 @@ def main():
     try:
         rate, data = convert_currency(amount, from_currency, to_currency)
     except:
-        print("enter currect currency code eg : USD,INR and enter valid amount")
+        print("enter valid currency code eg : USD,INR,AED EUR")
         main()
     timestamp = datetime.now()
 
@@ -77,11 +94,17 @@ def main():
 
     save_conversion(amount, from_currency, to_currency, rate, timestamp)
 
-    history = get_conversion_history()
-    print("conversion history")
-    print("------------------")
-    for record in history:
-        print(record)
+    ans = input("if you want  to see your history YES/NO :").upper()
+
+    if ans == 'YES':
+        history = get_conversion_history()
+
+        print("previously searched history")
+        print("--------------------")
+        for record in history:
+            print(record)
+            print("--------------------")
+        exit()
 
 
 if __name__ == "__main__":
