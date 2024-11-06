@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 import requests
 import sqlite3
 
@@ -33,7 +33,7 @@ def convert_currency(amount, from_curency, to_currency):
     data = response.json()
 
     rate = data['conversion_rate'] * amount
-    return rate, data
+    return rate
 
 # fetching saved data from data base
 
