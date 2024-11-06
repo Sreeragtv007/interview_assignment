@@ -77,10 +77,10 @@ def main():
     print("------------------")
     to_currency = input("To currency (e.g., EUR,AED): ").upper()
     print("------------------")
-
     try:
-        rate, data = convert_currency(amount, from_currency, to_currency)
+        rate = convert_currency(amount, from_currency, to_currency)
     except:
+
         print("enter valid currency code eg : USD,INR,AED EUR")
         main()
     timestamp = datetime.now()
