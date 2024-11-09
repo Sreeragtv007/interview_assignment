@@ -33,7 +33,7 @@ def convert_currency(amount, from_curency, to_currency):
     data = response.json()
 
     rate = data['conversion_rate'] * amount
-    return rate, data
+    return rate
 
 # fetching saved data from data base
 
@@ -50,15 +50,18 @@ def get_conversion_history():
 
 
 def save_conversion(amount, from_currency, to_currency, rate, timestamp):
-    conn = sqlite3.connect('currency_converter.db')
-    c = conn.cursor()
-    c.execute('''
-        INSERT INTO conversion_history (amount, from_currency, to_currency, rate,timestamp)
-        VALUES (?, ?, ?, ?,?)
-    ''', (amount, from_currency, to_currency, rate, timestamp))
-    conn.commit()
-    conn.close()
-
+    try:
+        conn = sqlite3.connect('currency_converter.db')
+        c = conn.cursor()
+        c.execute('''
+            INSERT INTO conversion_history (amount, from_currency, to_currency, rate,timestamp)
+            VALUES (?, ?, ?, ?,?)
+        ''', (amount, from_currency, to_currency, rate, timestamp))
+        conn.commit()
+        conn.close()
+        return True
+    except:
+        return False
 
 def main():
     create_database()
@@ -79,7 +82,7 @@ def main():
     print("------------------")
 
     try:
-        rate, data = convert_currency(amount, from_currency, to_currency)
+        rate= convert_currency(amount, from_currency, to_currency)
     except:
         print("enter valid currency code eg : USD,INR,AED EUR")
         main()
@@ -92,7 +95,14 @@ def main():
 
     print("------------------")
 
-    save_conversion(amount, from_currency, to_currency, rate, timestamp)
+    conversion_rate=save_conversion(amount, from_currency, to_currency, rate, timestamp)
+    
+    if conversion_rate is True:
+        print("conversion rate saved to database sucessfully")
+    else:
+        print("something happend while saving conversion data")
+
+        
 
     ans = input("if you want  to see your history YES/NO :").upper()
 
