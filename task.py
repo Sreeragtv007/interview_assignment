@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 import requests
 import sqlite3
 
@@ -31,14 +31,14 @@ def create_database():
 def convert_currency(amount, from_curency, to_currency):
     conn = sqlite3.connect('currency_converter.db')
     c = conn.cursor()
-    # date = datetime.now().strftime("%d/%m/%Y")
-    c.execute('''SELECT * FROM conversion_history WHERE from_currency = ? AND to_currency = ? ''',
-              (from_curency, to_currency))
+    date = datetime.datetime.now().strftime( "%d/%m/%Y")
+    c.execute('''SELECT * FROM conversion_history WHERE from_currency = ? AND to_currency = ? AND timestamp = ? ''',
+              (from_curency, to_currency,date))
     data = c.fetchall()
     c.close()
 
     if data:
-        print("fetched through database")
+        print("fetched through database for increasing performance")
         data = data[-1]
         rate = data[-2] * amount
         return rate
@@ -50,7 +50,8 @@ def convert_currency(amount, from_curency, to_currency):
 
         rate = data['conversion_rate'] * amount
         print('fetched through api')
-        save_conversion(amount, from_curency, to_currency, rate, data['conversion_rate'])
+        date = datetime.datetime.now().strftime( "%d/%m/%Y")
+        save_conversion(amount, from_curency, to_currency, rate, data['conversion_rate'],date)
         return rate
 
 # fetching saved data from data base
@@ -67,8 +68,8 @@ def get_conversion_history():
 # after fetching api converted data are saved to data base
 
 
-def save_conversion(amount, from_currency, to_currency, rate, currency_rate):
-    date = datetime.now().strftime('%Y-%m-%d')
+def save_conversion(amount, from_currency, to_currency, rate, currency_rate,date):
+    
     conn = sqlite3.connect('currency_converter.db')
     c = conn.cursor()
     c.execute('''
@@ -102,7 +103,6 @@ def main():
 
     # print("enter valid currency code eg : USD,INR,AED EUR")
     #     main()
-    timestamp = datetime.now()
     print("CURRENCY CONVERTER")
     print("------------------")
 
