@@ -2,9 +2,9 @@ import datetime
 import requests
 import sqlite3
 
-
+api_key = "f0c4123dd73731cafac7d7e9"
 # API URL for currency conversion
-url = "https://v6.exchangerate-api.com/v6/f0c4123dd73731cafac7d7e9/pair/{}/{}"
+url = "https://v6.exchangerate-api.com/v6/{}/pair/{}/{}"
 
 
 # creating new data base
@@ -31,32 +31,41 @@ def create_database():
 def convert_currency(amount, from_curency, to_currency):
     conn = sqlite3.connect('currency_converter.db')
     c = conn.cursor()
-    date = datetime.datetime.now().strftime( "%d/%m/%Y")
+    date = datetime.datetime.now().strftime("%d/%m/%Y")
     c.execute('''SELECT * FROM conversion_history WHERE from_currency = ? AND to_currency = ? AND timestamp = ? ''',
-              (from_curency, to_currency,date))
+              (from_curency, to_currency, date))
     data = c.fetchall()
     c.close()
 
     if data:
         print("fetched through database for increasing performance")
+        print("------------------")
         data = data[-1]
         rate = data[-2] * amount
         return rate
 
     else:
 
-        response = requests.get(url.format(from_curency, to_currency))
+        response = requests.get(url.format(api_key, from_curency, to_currency))
         data = response.json()
+        if data['result'] == "success":
 
-        rate = data['conversion_rate'] * amount
-        print('fetched through api')
-        date = datetime.datetime.now().strftime( "%d/%m/%Y")
-        save_conversion(amount, from_curency, to_currency, rate, data['conversion_rate'],date)
-        return rate
+            rate = data['conversion_rate'] * amount
+            print('fetched through external api')
+            print("------------------")
+
+            date = datetime.datetime.now().strftime("%d/%m/%Y")
+            save_conversion(amount, from_curency, to_currency,
+                            rate, data['conversion_rate'], date)
+            return rate
+        else:
+            print(
+                "invalid currency code  please enter valid currency code like AED,USD,EUR,INR")
+ 
+            return False
+
 
 # fetching saved data from data base
-
-
 def get_conversion_history():
     conn = sqlite3.connect('currency_converter.db')
     c = conn.cursor()
@@ -68,8 +77,8 @@ def get_conversion_history():
 # after fetching api converted data are saved to data base
 
 
-def save_conversion(amount, from_currency, to_currency, rate, currency_rate,date):
-    
+def save_conversion(amount, from_currency, to_currency, rate, currency_rate, date):
+
     conn = sqlite3.connect('currency_converter.db')
     c = conn.cursor()
     c.execute('''
@@ -99,17 +108,17 @@ def main():
     print("------------------")
 
     rate = convert_currency(amount, from_currency, to_currency)
-    print(rate)
 
-    # print("enter valid currency code eg : USD,INR,AED EUR")
-    #     main()
-    print("CURRENCY CONVERTER")
-    print("------------------")
+    if rate != False:
 
-    print(f"{amount} {from_currency} is equal to {rate} {to_currency}")
+        print("CURRENCY CONVERTER")
+        print("------------------")
 
-    print("------------------")
-    currency_rate = 100
+        print(f"{amount} {from_currency} is equal to {rate} {to_currency}")
+
+        print("------------------")
+    else:
+        main()
 
     ans = input("if you want  to see your history YES/NO :").upper()
 
